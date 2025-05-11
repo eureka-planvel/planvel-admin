@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: planvel-admin
+
+  servlet:
+    session:
+      timeout: 30m
+
+  config:
+    import: application-secret.yml
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:mysql://planvel-mysql:3306/planvel_db
+    username: planvel
+    password: ${MYSQL_ROOT_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
