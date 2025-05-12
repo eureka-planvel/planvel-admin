@@ -5,7 +5,7 @@ import com.planveladmin.dto.AdminDto;
 import com.planveladmin.dto.CommonResponse;
 import com.planveladmin.dto.request.AdminLoginRequestDto;
 import com.planveladmin.dto.request.AdminRegisterRequestDto;
-import com.planveladmin.service.AdminService;
+import com.planveladmin.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,19 +19,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
-public class AdminController {
+public class AuthController {
 
-  private final AdminService adminService;
+  private final AuthService authService;
 
   @PostMapping("/register")
   public ResponseEntity<CommonResponse<Void>> register ( @RequestBody AdminRegisterRequestDto request) {
-    CommonResponse<Void> response = adminService.register(request);
+    CommonResponse<Void> response = authService.register(request);
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/login")
   public ResponseEntity<CommonResponse<Void>> login (@RequestBody AdminLoginRequestDto request,  HttpSession session) {
-    return ResponseEntity.ok(adminService.login(request, session));
+    return ResponseEntity.ok(authService.login(request, session));
   }
 
   @GetMapping("/me")

@@ -7,34 +7,34 @@ import com.planveladmin.dto.AdminDto;
 import com.planveladmin.dto.CommonResponse;
 import com.planveladmin.dto.request.AdminLoginRequestDto;
 import com.planveladmin.dto.request.AdminRegisterRequestDto;
-import com.planveladmin.mapper.AdminMapper;
+import com.planveladmin.mapper.AuthMapper;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AdminService {
+public class AuthService {
 
-  private final AdminMapper adminMapper;
+  private final AuthMapper authMapper;
   private final PlanvelPasswordEncoder passwordEncoder;
 
 
   public CommonResponse<Void> register(AdminRegisterRequestDto request) {
-    if (adminMapper.existsByUsername(request.getUsername())) {
+    if (authMapper.existsByUsername(request.getUsername())) {
       return CommonResponse.fail("이미 존재하는 ID");
     }
 
     Admin admin = Admin.of(request.getUsername(), passwordEncoder.encode(request.getPassword()),
         request.getName());
-    adminMapper.insertAdmin(admin);
+    authMapper.insertAdmin(admin);
 
     return CommonResponse.success("회원 가입 성공");
 
   }
 
   public CommonResponse<Void> login(AdminLoginRequestDto request, HttpSession session) {
-    Admin admin = adminMapper.findByUsername(request.getUsername());
+    Admin admin = authMapper.findByUsername(request.getUsername());
 
     if (admin == null || !passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
       return CommonResponse.fail("아이디 또는 비밀번호가 올바르지 않습니다.");

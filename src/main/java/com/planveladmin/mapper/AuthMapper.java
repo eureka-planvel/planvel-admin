@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
 @Mapper
-public interface AdminMapper {
+public interface AuthMapper {
 
   @Select("SELECT COUNT(*) > 0 FROM admin WHERE username = #{username}")
   boolean existsByUsername(String username);
