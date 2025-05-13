@@ -6,7 +6,7 @@ import com.planveladmin.domain.Timetable;
 import com.planveladmin.dto.AdminDto;
 import com.planveladmin.dto.CommonResponse;
 import com.planveladmin.service.StationService;
-import com.planveladmin.service.TimetableService;
+import com.planveladmin.service.TransportService;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,9 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/transport")
 @RequiredArgsConstructor
-public class TransportManagementController {
+public class TransportController {
 
-  private final TimetableService timetableService;
+  private final TransportService transportService;
   private final StationService stationService;
 
 
@@ -35,7 +34,8 @@ public class TransportManagementController {
     AdminDto admin = SessionUtil.getLoginAdmin(session);
     if(admin == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.fail("로그인 필요"));
 
-    return ResponseEntity.ok(CommonResponse.success(timetableService.searchTimetables(transportType, departureStationId, arrivalStationId)," 시간표 조회"));
+    return ResponseEntity.ok(CommonResponse.success(
+        transportService.searchTimetables(transportType, departureStationId, arrivalStationId)," 시간표 조회"));
   }
 
   @GetMapping("/timetables/search")
@@ -49,7 +49,7 @@ public class TransportManagementController {
     AdminDto admin = SessionUtil.getLoginAdmin(session);
     if(admin == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.fail("로그인 필요"));
 
-    List<Timetable> timetables = timetableService.searchByCondition(
+    List<Timetable> timetables = transportService.searchByCondition(
         transportType, timeFrom, timeTo, transportNumber);
 
     return ResponseEntity.ok(CommonResponse.success(timetables, "조건별 시간표 조회 성공"));
@@ -60,7 +60,7 @@ public class TransportManagementController {
     AdminDto admin = SessionUtil.getLoginAdmin(session);
     if(admin == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.fail("로그인 필요"));
 
-    return ResponseEntity.ok(CommonResponse.success(timetableService.getTimetableById(id),"시간표 정보 조회"));
+    return ResponseEntity.ok(CommonResponse.success(transportService.getTimetableById(id),"시간표 정보 조회"));
   }
 
   @PutMapping("/timetables/{id}")
@@ -68,7 +68,7 @@ public class TransportManagementController {
     AdminDto admin = SessionUtil.getLoginAdmin(session);
     if(admin == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.fail("로그인 필요"));
 
-    return ResponseEntity.ok(CommonResponse.success(timetableService.updateTimetable(id),"시간표 정보 조회"));
+    return ResponseEntity.ok(CommonResponse.success(transportService.updateTimetable(id),"시간표 정보 조회"));
   }
 
   @GetMapping("/stations")
