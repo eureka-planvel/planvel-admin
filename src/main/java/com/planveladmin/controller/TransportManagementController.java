@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/management")
+@RequestMapping("/transport")
 @RequiredArgsConstructor
 public class TransportManagementController {
 
@@ -40,10 +40,10 @@ public class TransportManagementController {
 
   @GetMapping("/timetables/search")
   public ResponseEntity<CommonResponse<List<Timetable>>> searchTimetables(
-      @RequestParam(required = false) String transportType,
-      @RequestParam(required = false) String timeFrom,
-      @RequestParam(required = false) String timeTo,
-      @RequestParam(required = false) String transportNumber,
+      @RequestParam String transportType,
+      @RequestParam String timeFrom,
+      @RequestParam String timeTo,
+      @RequestParam String transportNumber,
       HttpSession session) {
 
     AdminDto admin = SessionUtil.getLoginAdmin(session);
