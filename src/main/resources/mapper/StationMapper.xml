@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.planveladmin.mapper.StationMapper">
+  <select id="getStationsByType" parameterType="string" resultType="com.planveladmin.domain.Station">
+    SELECT s.id, s.name, s.region_id as regionId, s.type,
+    r.name as regionName
+    FROM station s
+    JOIN region r ON s.region_id = r.id
+    WHERE s.type = #{type}
+    ORDER BY s.name
+  </select>
+</mapper>
