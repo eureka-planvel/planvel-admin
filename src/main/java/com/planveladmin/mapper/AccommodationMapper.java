@@ -22,16 +22,4 @@ public interface AccommodationMapper {
   List<Accommodation> selectByRegion(@Param("regionId") int regionId);
 
   Accommodation selectById(@Param("id") int id);
-
-  @Update("""
-    UPDATE accommodations
-    SET name = #{request.name},
-        address = #{request.address},
-        price_per_night = #{request.pricePerNight},
-        image_url = #{request.imageUrl},
-        region_id = #{request.regionId},
-        is_hotel = #{request.isHotel}
-    WHERE id = #{id}
-    """)
-  int updateAccommodation(@Param("id") int id, @Param("request") AccommodationRequestDto request);
 }
