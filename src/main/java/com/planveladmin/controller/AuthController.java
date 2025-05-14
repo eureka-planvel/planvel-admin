@@ -1,5 +1,6 @@
 package com.planveladmin.controller;
 
+import com.planveladmin.common.annotation.LoginAdmin;
 import com.planveladmin.common.util.SessionUtil;
 import com.planveladmin.dto.AdminDto;
 import com.planveladmin.dto.CommonResponse;
@@ -35,9 +36,7 @@ public class AuthController {
   }
 
   @GetMapping("/me")
-  public ResponseEntity<CommonResponse<AdminDto>> getMyInfo(HttpSession session) {
-    AdminDto admin = SessionUtil.getLoginAdmin(session);
-    if(admin == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.fail("로그인 필요"));
+  public ResponseEntity<CommonResponse<AdminDto>> getMyInfo(@LoginAdmin AdminDto admin) {
     return ResponseEntity.ok(CommonResponse.success(admin, "조회 성공"));
   }
 

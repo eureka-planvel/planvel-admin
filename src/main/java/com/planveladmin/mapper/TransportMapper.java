@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface TimetableMapper {
+public interface TransportMapper {
 
   List<Timetable> searchTimetables(String transportType, Integer departureStationId, Integer arrivalStationId);
 

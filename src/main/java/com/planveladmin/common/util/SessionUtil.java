@@ -3,6 +3,8 @@ package com.planveladmin.common.util;
 import com.planveladmin.domain.Admin;
 import com.planveladmin.dto.AdminDto;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 public class SessionUtil {
   private static final String LOGIN_ADMIN_KEY = "LOGIN_ADMIN";

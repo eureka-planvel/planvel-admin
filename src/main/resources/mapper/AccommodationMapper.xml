@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.planveladmin.mapper.AccommodationMapper">
+  <!-- 숙소 등록 -->
+  <insert id="insertAccommodation" parameterType="com.planveladmin.domain.Accommodation">
+    INSERT INTO accommodations (
+      region_id, name, address, price_per_night, image_url, thumbnail_url, is_hotel
+    ) VALUES (
+               #{regionId}, #{name}, #{address}, #{pricePerNight}, #{imageUrl}, #{thumbnailUrl}, #{isHotel}
+             )
+  </insert>
+
+  <!-- 숙소 상세 조회 -->
+  <select id="selectById" resultType="com.planveladmin.domain.Accommodation">
+    SELECT
+      id, region_id as regionId, name, address,
+      price_per_night as pricePerNight,
+      image_url as imageUrl, thumbnail_url as thumbnailUrl,
+      is_hotel as isHotel
+    FROM accommodations
+    WHERE id = #{id}
+  </select>
+</mapper>
