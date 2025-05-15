@@ -56,9 +56,4 @@ public class AccommodationController {
     return ResponseEntity.ok(accommodationService.getById(id));
   }
 
-  @PutMapping("/{id}")
-  public ResponseEntity<CommonResponse<Void>> updateAccommodation(@PathVariable int id, @RequestBody AccommodationRequestDto request) {
-    return ResponseEntity.ok(accommodationService.update(id, request));
-  }
-
 }

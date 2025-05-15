@@ -98,12 +98,4 @@ public class AccommodationService {
   public CommonResponse<Accommodation> getById(int id) {
     return CommonResponse.success(accommodationMapper.selectById(id), "상세 조회 성공");
   }
-
-  public CommonResponse<Void> update(int id, AccommodationRequestDto request) {
-    int result = accommodationMapper.updateAccommodation(id,request);
-    if (result == 0) {
-      return CommonResponse.fail("숙소 수정 실패");
-    }
-    return CommonResponse.success("숙소 수정 성공");
-  }
 }
