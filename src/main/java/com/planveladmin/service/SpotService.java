@@ -2,7 +2,7 @@ package com.planveladmin.service;
 
 import com.planveladmin.domain.Spot;
 import com.planveladmin.domain.type.SpotType;
-import com.planveladmin.dto.CommonResponse;
+import com.planveladmin.dto.*;
 import com.planveladmin.mapper.SpotMapper;
 import java.io.File;
 import java.io.IOException;
@@ -10,85 +10,168 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import com.planveladmin.repository.RegionRepository;
+import com.planveladmin.repository.SpotRepository;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SpotService {
 
-  private final SpotMapper spotMapper;
+  private final SpotRepository spotRepository;
+  private final CodeService codeService;
+  private final RegionRepository regionRepository;
 
-  public CommonResponse<Void> register(Integer regionId, String spotName, String address, String type, MultipartFile image) {
+  @Transactional
+  public SpotDto createSpot(SpotCreateDto createDto) {
+    validateSpotCreateDto(createDto);
 
-    SpotType spotType = SpotType.fromString(type);
-
-    Map<String, String> imageUrls = saveImageWithThumbnail(image);
-
-    Spot spot = new Spot();
-    spot.setRegionId(regionId);
-    spot.setSpotName(spotName);
-    spot.setAddress(address);
-    spot.setType(spotType.name());
-    spot.setImageUrl(imageUrls.get("original"));
-    spot.setThumbnailUrl(imageUrls.get("thumbnail"));
-
-    int result = spotMapper.insertSpot(spot);
-    if (result == 0) {
-      return CommonResponse.fail("스팟 등록 실패");
+    if (!codeService.existsCode("030", createDto.getType())) {
+      throw new IllegalArgumentException("유효하지 않은 타입입니다: " + createDto.getType());
     }
-    return CommonResponse.success("스팟 등록 성공");
-  }
 
-  private Map<String, String> saveImageWithThumbnail(MultipartFile image) {
-    Map<String, String> imageUrls = new HashMap<>();
-
-    String originalFilename = image.getOriginalFilename();
-    String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-    String uniqueFileName = UUID.randomUUID().toString() + extension;
-
-    String uploadDir = "/uploads/spot/";
-    String originalDir = uploadDir + "original/";
-    String thumbnailDir = uploadDir + "thumbnail/";
-
-    String originalFilePath = originalDir + uniqueFileName;
-    String thumbnailFilePath = thumbnailDir + uniqueFileName;
-
-    try {
-      new File(originalDir).mkdirs();
-      new File(thumbnailDir).mkdirs();
-
-      File originalFile = new File(originalFilePath);
-      image.transferTo(originalFile);
-
-      Thumbnails.of(originalFile)
-          .size(200, 200)
-          .crop(Positions.CENTER)
-          .toFile(new File(thumbnailFilePath));
-
-      imageUrls.put("original", "/uploads/spot/original/" + uniqueFileName);
-      imageUrls.put("thumbnail", "/uploads/spot/thumbnail/" + uniqueFileName);
-
-      return imageUrls;
-    } catch (IOException e) {
-      System.err.println("스팟 이미지 처리 실패: " + e.getMessage());
-      e.printStackTrace();
-      throw new RuntimeException("스팟 이미지 처리 실패", e);
+    if (!regionRepository.existsById(createDto.getRegionId())) {
+      throw new IllegalArgumentException("유효하지 않은 지역입니다: " + createDto.getRegionId());
     }
+
+    Spot spot = createDto.toEntity();
+    Spot savedSpot = spotRepository.save(spot);
+    return convertToDto(savedSpot);
   }
 
-  public CommonResponse<List<Spot>> getAll() {
-    return CommonResponse.success(spotMapper.selectAll(), "전체 스팟 조회 성공");
+  public SpotDto getSpot(Integer id) {
+    Spot spot = spotRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("관광지를 찾을 수 없습니다: " + id));
+    return convertToDto(spot);
   }
 
-  public CommonResponse<List<Spot>> getByRegion(int regionId) {
-    return CommonResponse.success(spotMapper.selectByRegion(regionId), "지역별 스팟 조회 성공");
+  @Transactional
+  public SpotDto updateSpot(Integer id, SpotUpdateDto updateDto) {
+    Spot spot = spotRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("관광지를 찾을 수 없습니다: " + id));
+
+    if (updateDto.getType() != null && !codeService.existsCode("030", updateDto.getType())) {
+      throw new IllegalArgumentException("유효하지 않은 타입입니다: " + updateDto.getType());
+    }
+
+    if (updateDto.getRegionId() != null && !regionRepository.existsById(updateDto.getRegionId())) {
+      throw new IllegalArgumentException("유효하지 않은 지역입니다: " + updateDto.getRegionId());
+    }
+
+    updateSpotFields(spot, updateDto);
+    Spot updatedSpot = spotRepository.save(spot);
+    return convertToDto(updatedSpot);
   }
 
-  public CommonResponse<Spot> getById(int id) {
-    return CommonResponse.success(spotMapper.selectById(id), "스팟 상세 조회 성공");
+  @Transactional
+  public void deleteSpot(Integer id) {
+    if (!spotRepository.existsById(id)) {
+      throw new RuntimeException("관광지를 찾을 수 없습니다: " + id);
+    }
+    spotRepository.deleteById(id);
+  }
+
+  public List<SpotDto> getAllSpots() {
+    return spotRepository.findAll()
+            .stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+  }
+
+  public List<SpotDto> getSpotsByRegion(Integer regionId) {
+    return spotRepository.findByRegionIdOrderByIdDesc(regionId)
+            .stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+  }
+
+  public List<SpotDto> getSpotsByType(String type) {
+    return spotRepository.findByTypeOrderByIdDesc(type)
+            .stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+  }
+
+  public List<SpotDto> getSpotsByRegionAndType(Integer regionId, String type) {
+    return spotRepository.findByRegionIdAndTypeOrderByIdDesc(regionId, type)
+            .stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+  }
+
+  public List<SpotDto> searchSpotsByName(String spotName) {
+    return spotRepository.findBySpotNameContainingIgnoreCaseOrderByIdDesc(spotName)
+            .stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+  }
+
+  public Page<SpotDto> getAllSpotsPaged(Pageable pageable) {
+    return spotRepository.findAllByOrderByIdDesc(pageable)
+            .map(this::convertToDto);
+  }
+
+  public Page<SpotDto> getSpotsByTypePaged(String type, Pageable pageable) {
+    return spotRepository.findByTypeOrderByIdDesc(type, pageable)
+            .map(this::convertToDto);
+  }
+
+  public Page<SpotDto> getSpotsByRegionPaged(Integer regionId, Pageable pageable) {
+    return spotRepository.findByRegionIdOrderByIdDesc(regionId, pageable)
+            .map(this::convertToDto);
+  }
+
+  private SpotDto convertToDto(Spot spot) {
+    SpotDto dto = SpotDto.from(spot);
+
+    if (spot.getType() != null) {
+      try {
+        CodeDto codeDto = codeService.getCode("030", spot.getType());
+        dto.setTypeName(codeDto.getCodeName());
+      } catch (Exception e) {
+        dto.setTypeName(spot.getType());
+      }
+    }
+
+    if (spot.getRegionId() != null) {
+      regionRepository.findById(spot.getRegionId())
+              .ifPresent(region -> dto.setRegionName(region.getName()));
+    }
+
+    return dto;
+  }
+
+  private void updateSpotFields(Spot spot, SpotUpdateDto updateDto) {
+    if (updateDto.getRegionId() != null) spot.setRegionId(updateDto.getRegionId());
+    if (updateDto.getSpotName() != null) spot.setSpotName(updateDto.getSpotName());
+    if (updateDto.getAddress() != null) spot.setAddress(updateDto.getAddress());
+    if (updateDto.getType() != null) spot.setType(updateDto.getType());
+    if (updateDto.getImageUrl() != null) spot.setImageUrl(updateDto.getImageUrl());
+    if (updateDto.getThumbnailUrl() != null) spot.setThumbnailUrl(updateDto.getThumbnailUrl());
+  }
+
+  private void validateSpotCreateDto(SpotCreateDto createDto) {
+    if (createDto.getRegionId() == null) {
+      throw new IllegalArgumentException("지역은 필수입니다");
+    }
+    if (createDto.getSpotName() == null || createDto.getSpotName().trim().isEmpty()) {
+      throw new IllegalArgumentException("관광지명은 필수입니다");
+    }
+    if (createDto.getAddress() == null || createDto.getAddress().trim().isEmpty()) {
+      throw new IllegalArgumentException("주소는 필수입니다");
+    }
+    if (createDto.getType() == null || createDto.getType().trim().isEmpty()) {
+      throw new IllegalArgumentException("타입은 필수입니다");
+    }
   }
 }

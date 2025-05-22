@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: planvel-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: planvel_db
+      MYSQL_USER: planvel
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  planvel-admin:
+    build: .
+    container_name: planvel-admin
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    profiles:
+      - docker
+
+volumes:
+  mysql_data:
