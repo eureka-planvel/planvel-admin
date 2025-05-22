@@ -71,11 +71,10 @@ public class GroupCodeServiceImpl implements GroupCodeService{
 			Pageable pageable = PageRequest.of(pageNumber, pageSize);
 			Page<GroupCode> page = groupCodeRepository.findAll(pageable);
 			List<GroupCodeDto> groupCodeDtoList = new ArrayList<>();
-			
-			// Page<GroupCode> -> List<GroupCodeDto>
+
 			page.toList().forEach(groupCode -> groupCodeDtoList.add(GroupCodeDto.fromGroupCode(groupCode)));
 			codeResultDto.setGroupCodeDtoList(groupCodeDtoList);
-			// count
+
 			Long count = groupCodeRepository.count();
 			codeResultDto.setCount(count);
 			codeResultDto.setResult("success");
