@@ -68,11 +68,10 @@ public class CodeServiceImpl implements CodeService{
 			Pageable pageable = PageRequest.of(pageNumber, pageSize);
 			Page<Code> page = codeRepository.findByGroupCode(groupCode, pageable);
 			List<CodeDto> codeDtoList = new ArrayList<>();
-			
-			// Page<Code> -> List<CodeDto>
+
 			page.toList().forEach(code -> codeDtoList.add(CodeDto.fromCode(code)));
 			codeResultDto.setCodeDtoList(codeDtoList);
-			// count
+
 			Long count = codeRepository.count();
 			codeResultDto.setCount(count);
 			codeResultDto.setResult("success");

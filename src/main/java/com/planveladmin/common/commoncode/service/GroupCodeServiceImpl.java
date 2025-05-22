@@ -25,7 +25,6 @@ public class GroupCodeServiceImpl implements GroupCodeService{
 	public CodeResultDto insertGroupCode(GroupCode groupCode) {
 		CodeResultDto codeResultDto = new CodeResultDto();
 		try {
-			// isNew true
 			groupCode.setNew(true);
 			groupCodeRepository.save(groupCode);
 			codeResultDto.setResult("success");
@@ -40,7 +39,6 @@ public class GroupCodeServiceImpl implements GroupCodeService{
 	public CodeResultDto updateGroupCode(GroupCode groupCode) {
 		CodeResultDto codeResultDto = new CodeResultDto();
 		try {
-			// isNew false
 			groupCode.setNew(false);
 			groupCodeRepository.save(groupCode);
 			codeResultDto.setResult("success");
