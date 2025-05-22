@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>공통 코드 관리</title>
+    <style>
+        table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+<h1>그룹코드 관리</h1>
+<hr>
+<table>
+    <thead>
+    <tr><th>그룹코드</th><th>이름</th><th>설명</th><th>코드관리</th></tr>
+    </thead>
+    <tbody id="tbodyGroupCode"></tbody>
+</table>
+
+<h3>그룹코드 등록 / 수정</h3>
+<form>
+    <label>그룹코드: <input type="text" id="groupcode" required></label><br>
+    <label>이름: <input type="text" id="groupname" required></label><br>
+    <label>설명: <input type="text" id="groupcodedesc"></label><br>
+</form>
+<div>
+    <button id="btnInsertGroup">등록</button>
+    <button id="btnUpdateGroup">수정</button>
+    <button id="btnDeleteGroup">삭제</button>
+    <button id="btnClearGroup">초기화</button>
+</div>
+<hr>
+<div id="codeSection" class="hidden">
+    <h2>코드 관리 (선택된 그룹코드: <span id="selectedGroupCode"></span>)</h2>
+    <table>
+        <thead>
+        <tr><th>코드</th><th>이름</th><th>약어</th><th>순서</th></tr>
+        </thead>
+        <tbody id="tbodyCode"></tbody>
+    </table>
+    <h3>코드 등록 / 수정</h3>
+    <form>
+        <label>코드: <input type="text" id="code" required></label><br>
+        <label>이름: <input type="text" id="codeName" required></label><br>
+        <label>약어: <input type="text" id="codeNameBrief"></label><br>
+        <label>순서: <input type="number" id="orderNo"></label><br>
+    </form>
+    <div>
+        <button id="btnInsertCode">등록</button>
+        <button id="btnUpdateCode">수정</button>
+        <button id="btnDeleteCode">삭제</button>
+        <button id="btnClearCode">초기화</button>
+    </div>
+</div>
+
+<script>
+    let currentGroupCode = null;
+    let currentCode = null;
+
+    window.onload = function(){
+        loadGroupCodes();
+
+        document.querySelector("#btnInsertGroup").onclick = insertGroupCode;
+        document.querySelector("#btnUpdateGroup").onclick = updateGroupCode;
+        document.querySelector("#btnDeleteGroup").onclick = deleteGroupCode;
+        document.querySelector("#btnClearGroup").onclick = clearGroupForm;
+
+        document.querySelector("#btnInsertCode").onclick = insertCode;
+        document.querySelector("#btnUpdateCode").onclick = updateCode;
+        document.querySelector("#btnDeleteCode").onclick = deleteCode;
+        document.querySelector("#btnClearCode").onclick = clearCodeForm;
+    }
+
+    async function loadGroupCodes(){
+        try{
+            const res = await fetch('/groupcodes?pageNumber=0&pageSize=100');
+            const data = await res.json();
+            if (data.result === 'success') {
+                renderGroupCodes(data.groupCodeDtoList);
+            }
+        }catch(err){ console.error(err); }
+    }
+
+    function renderGroupCodes(list){
+        const tbody = document.querySelector("#tbodyGroupCode");
+        tbody.innerHTML = "";
+        list.forEach(g => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${g.groupCode}</td><td>${g.groupCodeName}</td><td>${g.groupCodeDesc || ''}</td>
+            <td><button onclick="showCodeSection('${g.groupCode}')">코드관리</button></td>`;
+            row.addEventListener("click", () => {
+                document.getElementById("groupcode").value = g.groupCode;
+                document.getElementById("groupname").value = g.groupCodeName;
+                document.getElementById("groupcodedesc").value = g.groupCodeDesc;
+                document.getElementById("groupcode").disabled = false;
+            });
+            tbody.appendChild(row);
+        });
+    }
+
+    function showCodeSection(code) {
+        currentGroupCode = code;
+        document.getElementById("selectedGroupCode").innerText = code;
+        document.getElementById("codeSection").classList.remove("hidden");
+        clearCodeForm();
+        loadCodes(code);
+    }
+
+    async function loadCodes(groupCode){
+        try{
+            const res = await fetch(`/codes?groupCode=${groupCode}&pageNumber=0&pageSize=100`);
+            const data = await res.json();
+            if(data.result === 'success') renderCodes(data.codeDtoList);
+        }catch(err){ console.error(err); }
+    }
+
+    function renderCodes(list){
+        const tbody = document.getElementById("tbodyCode");
+        tbody.innerHTML = "";
+        list.forEach(c => {
+            const row = `<tr onclick="selectCode('${c.groupCode}', '${c.code}')"><td>${c.code}</td><td>${c.codeName}</td><td>${c.codeNameBrief}</td><td>${c.orderNo}</td></tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    async function selectCode(groupCode, code){
+        try{
+            const res = await fetch(`/codes/${groupCode}/${code}`);
+            const data = await res.json();
+            if(data.result === 'success') {
+                const c = data.codeDto;
+                document.getElementById("code").value = c.code;
+                document.getElementById("codeName").value = c.codeName;
+                document.getElementById("codeNameBrief").value = c.codeNameBrief;
+                document.getElementById("orderNo").value = c.orderNo;
+                currentCode = c.code;
+            }
+        }catch(err){ console.error(err); }
+    }
+
+    async function insertGroupCode(){
+        const groupCode = document.getElementById("groupcode").value;
+        const groupCodeName = document.getElementById("groupname").value;
+        const groupCodeDesc = document.getElementById("groupcodedesc").value;
+
+        const params = new URLSearchParams({ groupCode, groupCodeName, groupCodeDesc });
+        const res = await fetch('/groupcodes', { method: 'POST', body: params });
+        const data = await res.json();
+        if(data.result === 'success') { alert('등록 성공'); loadGroupCodes(); clearGroupForm(); }
+        else alert('등록 실패');
+    }
+
+    async function updateGroupCode(){
+        const groupCode = document.getElementById("groupcode").value;
+        const groupCodeName = document.getElementById("groupname").value;
+        const groupCodeDesc = document.getElementById("groupcodedesc").value;
+
+        const params = new URLSearchParams({ groupCode, groupCodeName, groupCodeDesc });
+        const res = await fetch('/groupcodes', { method: 'PUT', body: params });
+        const data = await res.json();
+        if(data.result === 'success') { alert('수정 성공'); loadGroupCodes(); clearGroupForm(); }
+        else alert('수정 실패');
+    }
+
+    async function deleteGroupCode(){
+        const groupCode = document.getElementById("groupcode").value;
+        if (!groupCode) return alert("삭제할 그룹코드를 선택해주세요");
+        const res = await fetch(`/groupcodes/${groupCode}`, { method: 'DELETE' });
+        const data = await res.json();
+        if(data.result === 'success') { alert('삭제 성공'); loadGroupCodes(); clearGroupForm(); }
+        else alert('삭제 실패');
+    }
+
+    function clearGroupForm(){
+        document.getElementById("groupcode").value = "";
+        document.getElementById("groupname").value = "";
+        document.getElementById("groupcodedesc").value = "";
+        document.getElementById("groupcode").disabled = false;
+        currentGroupCode = null;
+        document.getElementById("selectedGroupCode").innerText = "";
+        document.getElementById("codeSection").classList.add("hidden");
+        clearCodeForm();
+    }
+
+    async function insertCode(){
+        const code = document.getElementById("code").value;
+        const codeName = document.getElementById("codeName").value;
+        const codeNameBrief = document.getElementById("codeNameBrief").value;
+        const orderNo = document.getElementById("orderNo").value;
+
+        const params = new URLSearchParams({ groupCode: currentGroupCode, code, codeName, codeNameBrief, orderNo });
+        const res = await fetch('/codes', { method: 'POST', body: params });
+        const data = await res.json();
+        if(data.result === 'success') { alert('코드 등록 성공'); loadCodes(currentGroupCode); clearCodeForm(); }
+        else alert('등록 실패');
+    }
+
+    async function updateCode(){
+        const code = document.getElementById("code").value;
+        const codeName = document.getElementById("codeName").value;
+        const codeNameBrief = document.getElementById("codeNameBrief").value;
+        const orderNo = document.getElementById("orderNo").value;
+
+        const params = new URLSearchParams({ groupCode: currentGroupCode, code, codeName, codeNameBrief, orderNo });
+        const res = await fetch('/codes', { method: 'PUT', body: params });
+        const data = await res.json();
+        if(data.result === 'success') { alert('코드 수정 성공'); loadCodes(currentGroupCode); clearCodeForm(); }
+        else alert('수정 실패');
+    }
+
+    async function deleteCode(){
+        const code = document.getElementById("code").value;
+        if (!code) return alert("삭제할 코드를 선택해주세요");
+        const res = await fetch(`/codes/${currentGroupCode}/${code}`, { method: 'DELETE' });
+        const data = await res.json();
+        if(data.result === 'success') { alert('코드 삭제 성공'); loadCodes(currentGroupCode); clearCodeForm(); }
+        else alert('삭제 실패');
+    }
+
+    function clearCodeForm(){
+        document.getElementById("code").value = "";
+        document.getElementById("codeName").value = "";
+        document.getElementById("codeNameBrief").value = "";
+        document.getElementById("orderNo").value = "";
+        currentCode = null;
+    }
+</script>
+</body>
+</html>

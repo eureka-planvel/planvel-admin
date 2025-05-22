@@ -32,11 +32,11 @@ public class AccommodationController {
       @RequestParam("name") String name,
       @RequestParam("address") String address,
       @RequestParam("pricePerNight") Integer pricePerNight,
-      @RequestParam("isHotel") Boolean isHotel,
+      @RequestParam("typeCode") String typeCode,
       @RequestPart("image") MultipartFile image
   ) {
     return ResponseEntity.ok(
-        accommodationService.register(regionId, name, address, pricePerNight, isHotel, image)
+        accommodationService.register(regionId, name, address, pricePerNight, typeCode, image)
     );
   }
 

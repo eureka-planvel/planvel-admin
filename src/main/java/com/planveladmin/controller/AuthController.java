@@ -32,6 +32,7 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<CommonResponse<Void>> login (@RequestBody AdminLoginRequestDto request,  HttpSession session) {
+    System.out.println(session.getId());
     return ResponseEntity.ok(authService.login(request, session));
   }
 

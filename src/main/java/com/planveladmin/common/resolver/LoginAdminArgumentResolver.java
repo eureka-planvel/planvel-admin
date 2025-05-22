@@ -31,4 +31,5 @@ public class LoginAdminArgumentResolver implements HandlerMethodArgumentResolver
     }
     return admin;
   }
+
 }

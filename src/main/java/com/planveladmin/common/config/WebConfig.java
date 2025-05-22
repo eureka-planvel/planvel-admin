@@ -83,8 +83,9 @@ public class WebConfig implements WebMvcConfigurer {
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new AdminAuthInterceptor())
         .addPathPatterns("/**")                    // 전체 보호
-        .excludePathPatterns("/auth/login", "/error");
+        .excludePathPatterns("/**");
   }
+
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
