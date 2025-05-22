@@ -23,7 +23,7 @@ public class AccommodationService {
 
   private final AccommodationMapper accommodationMapper;
 
-  public CommonResponse<Void> register(Integer regionId, String name, String address, Integer pricePerNightInt, Boolean isHotel, MultipartFile image) {
+  public CommonResponse<Void> register(Integer regionId, String name, String address, Integer pricePerNightInt, String typeCode, MultipartFile image) {
     Map<String, String> imageUrls = saveImageWithThumbnail(image);
 
     Accommodation accommodation = new Accommodation();
@@ -31,7 +31,7 @@ public class AccommodationService {
     accommodation.setName(name);
     accommodation.setAddress(address);
     accommodation.setPricePerNight(BigDecimal.valueOf(pricePerNightInt));
-    accommodation.setIsHotel(isHotel);
+    accommodation.setTypeCode(typeCode);
     accommodation.setImageUrl(imageUrls.get("original"));
     accommodation.setThumbnailUrl(imageUrls.get("thumbnail"));
 
