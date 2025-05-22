@@ -31,9 +31,9 @@ public class WebConfig implements WebMvcConfigurer {
   @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/**")
-        .allowedOrigins("http://localhost:5500", "http://127.0.0.1:5500")  // VSCode Live Server
+        .allowedOriginPatterns("*")
         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        .allowedHeaders("Content-Type", "X-Requested-With")
+        .allowedHeaders("*")
         .allowCredentials(true);
   }
 
@@ -44,32 +44,6 @@ public class WebConfig implements WebMvcConfigurer {
       cookieProcessor.setSameSiteCookies("Lax");
       context.setCookieProcessor(cookieProcessor);
     });
-  }
-
-  @Bean
-  public FilterRegistrationBean<Filter> corsFilterBean() {
-    FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
-
-    registrationBean.setFilter((ServletRequest req, ServletResponse res, FilterChain chain) -> {
-      HttpServletRequest request = (HttpServletRequest) req;
-      HttpServletResponse response = (HttpServletResponse) res;
-
-      response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-      response.setHeader("Access-Control-Allow-Credentials", "true");
-      response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-      response.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Requested-With");
-
-      if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-        response.setStatus(HttpServletResponse.SC_OK);
-        return;
-      }
-
-      chain.doFilter(req, res);
-    });
-
-    registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-    registrationBean.addUrlPatterns("/*");
-    return registrationBean;
   }
 
   @Override
@@ -83,7 +57,7 @@ public class WebConfig implements WebMvcConfigurer {
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new AdminAuthInterceptor())
         .addPathPatterns("/**")                    // 전체 보호
-        .excludePathPatterns("/auth/login", "/error");
+        .excludePathPatterns("/auth/login", "/auth/register", "/error");
   }
 
   @Override

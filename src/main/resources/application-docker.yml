@@ -18,8 +18,8 @@ spring:
       on-profile: docker
 
   datasource:
-    url: jdbc:mysql://planvel-mysql:3306/planvel_db
-    username: planvel
+    url: jdbc:mysql://localhost:3306/planvel_db
+    username: root
     password: ${MYSQL_ROOT_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
